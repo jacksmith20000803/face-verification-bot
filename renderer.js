@@ -1,9 +1,11 @@
 (() => {
   const IDLE = 'idle.mp4';
+  const ACTION_RATE = 2;
+  const SKIP_RATE = 10;
 
   const KEY_MAP = {
-    ArrowLeft: 'left.mp4',
-    ArrowRight: 'right.mp4',
+    ArrowLeft: 'right.mp4',
+    ArrowRight: 'left.mp4',
     ArrowUp: 'up.mp4',
     ArrowDown: 'down.mp4',
     m: 'mouse.mp4',
@@ -25,7 +27,7 @@
     return `poses/${name}`;
   }
 
-  function playClip(name, { loop }) {
+  function playClip(name, { loop, rate }) {
     currentClip = name;
     if (loop) {
       pendingClip = null;
@@ -36,6 +38,7 @@
 
     const onReady = () => {
       player.removeEventListener('loadeddata', onReady);
+      player.playbackRate = rate;
       player.play().catch(() => {});
     };
 
@@ -45,12 +48,12 @@
   }
 
   function playIdle() {
-    playClip(IDLE, { loop: true });
+    playClip(IDLE, { loop: true, rate: 1 });
   }
 
   function playAction(name) {
     pendingClip = null;
-    playClip(name, { loop: false });
+    playClip(name, { loop: false, rate: ACTION_RATE });
   }
 
   function requestClip(name) {
@@ -59,8 +62,9 @@
       return;
     }
 
-    // Action clip is playing: finish it, then play the requested clip.
+    // Finish the current action quickly, then play the requested clip.
     pendingClip = name;
+    player.playbackRate = SKIP_RATE;
   }
 
   player.addEventListener('ended', () => {
